@@ -56,6 +56,41 @@ async function startCamera() {
   }
 }
 
+// ---------- Fonctions utilitaires de comparaison (Matching) ----------
+
+// Fonction de normalisation pour enlever les accents et passer en minuscule
+function normalize(str) {
+  return str ? str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
+}
+
+// Compare l'identité d'œuvre donnée par l'IA avec la liste du musée.
+// Retourne l'id de l'œuvre correspondante ou null.
+function findBestMatch(identifiedArtwork, museumArtworks) {
+  if (!identifiedArtwork) return null;
+
+  const identifiedTitleLower = normalize(identifiedArtwork.titre);
+  const identifiedArtistLower = normalize(identifiedArtwork.artiste);
+
+  for (const artwork of museumArtworks) {
+    const dbTitleLower = normalize(artwork.nom);
+    const dbArtistLower = normalize(artwork.auteur);
+
+    // Essayer de trouver une correspondance exacte (titre + auteur)
+    if (identifiedTitleLower === dbTitleLower && identifiedArtistLower === dbArtistLower) {
+      return artwork.id;
+    }
+
+    // Essayer de trouver une correspondance partielle sur le titre seul.
+    // Plus souple, attrape "Mona Lisa" vs "La Joconde" ou les titres tronqués.
+    if (identifiedTitleLower.includes(dbTitleLower) || dbTitleLower.includes(identifiedTitleLower)) {
+       return artwork.id;
+    }
+  }
+
+  return null; // Aucune correspondance trouvée
+}
+
+
 // ---------- Capture + identification ----------
 
 async function captureAndIdentify() {
@@ -88,36 +123,34 @@ async function identifyImage(imageBase64) {
   statusEl.textContent = "Analyse en cours...";
 
   const museum = MUSEUMS_DATA[currentMuseumId];
-  const possibleArtworks = museum.artworks.map((a) => ({
-    id: a.id,
-    nom: a.nom
-  }));
 
   try {
     const response = await fetch("/api/identify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        image: imageBase64,
-        artworks: possibleArtworks
-      })
+      body: JSON.stringify({ image: imageBase64 })
     });
 
-    const data = await response.json();
-    console.log("Réponse API:", data);
+    // C'est maintenant un objet d'identification détaillé
+    const identifiedData = await response.json();
+    console.log("Réponse API détaillée:", identifiedData);
 
-    if (data.error) {
-      statusEl.textContent = "Erreur API : " + data.error;
+    if (!identifiedData || identifiedData.error) {
+      statusEl.textContent = "Erreur API : " + (identifiedData?.error || "Impossible de parser la réponse.");
       return;
     }
 
-    if (data.id && data.id !== "none") {
-      showResult(data.id);
-      unlockArtwork(currentMuseumId, data.id);
-      statusEl.textContent = "Œuvre identifiée !";
+    // Effectuer le matching avec ta base de données locale
+    const matchedArtworkId = findBestMatch(identifiedData, museum.artworks);
+
+    if (matchedArtworkId) {
+      showResult(matchedArtworkId);
+      unlockArtwork(currentMuseumId, matchedArtworkId);
+      statusEl.textContent = "Œuvre identifiée et ajoutée à ta collection !";
     } else {
-      statusEl.textContent = "Aucune œuvre reconnue. Essaie un autre angle.";
+      statusEl.textContent = `Œuvre reconnue comme "${identifiedData.titre}" par l'IA, mais elle n'est pas dans la liste de ce musée.`;
     }
+
   } catch (err) {
     statusEl.textContent = "Erreur lors de l'analyse : " + err.message;
   }
