@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scan Musée</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <h1>🎨 Scan Musée</h1>
+    <select id="museum-select"></select>
+  </header>
+
+  <main>
+    <section id="scanner-section">
+      <video id="camera" autoplay playsinline></video>
+      <canvas id="canvas" style="display:none;"></canvas>
+      <button id="capture-btn">📸 Scanner une œuvre</button>
+      <p id="status"></p>
+    </section>
+
+    <section id="result-section" class="hidden">
+      <h2 id="result-title"></h2>
+      <p id="result-author"></p>
+      <p id="result-year"></p>
+      <p id="result-description"></p>
+      <button id="close-result">Fermer</button>
+    </section>
+
+    <section id="collection-section">
+      <h2>Ma collection</h2>
+      <p id="progress-text"></p>
+      <div id="collection-grid"></div>
+    </section>
+  </main>
+
+  <script src="data/artworks.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
