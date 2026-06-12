@@ -12,9 +12,14 @@ let stream = null;
 function init() {
   populateMuseumSelect();
   startCamera();
+
+  // sélectionner le premier musée par défaut AVANT de rendre la collection
+  const select = document.getElementById("museum-select");
+  currentMuseumId = select.value;
+
   renderCollection();
 
-  document.getElementById("museum-select").addEventListener("change", (e) => {
+  select.addEventListener("change", (e) => {
     currentMuseumId = e.target.value;
     renderCollection();
   });
@@ -23,10 +28,6 @@ function init() {
   document.getElementById("close-result").addEventListener("click", () => {
     document.getElementById("result-section").classList.add("hidden");
   });
-
-  // sélectionner le premier musée par défaut
-  const select = document.getElementById("museum-select");
-  currentMuseumId = select.value;
 }
 
 function populateMuseumSelect() {
