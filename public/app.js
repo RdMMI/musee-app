@@ -120,7 +120,12 @@ async function handleFileImport(event) {
 
 async function identifyImage(imageBase64) {
   const statusEl = document.getElementById("status");
-  statusEl.textContent = "Analyse en cours...";
+  const captureBtn = document.getElementById("capture-btn"); 
+  
+  statusEl.textContent = "Analyse en cours... (merci de patienter)";
+  
+  // 🔒 On désactive le bouton pour empêcher les doubles clics
+  if (captureBtn) captureBtn.disabled = true; 
 
   const museum = MUSEUMS_DATA[currentMuseumId];
 
@@ -131,16 +136,15 @@ async function identifyImage(imageBase64) {
       body: JSON.stringify({ image: imageBase64 })
     });
 
-    // C'est maintenant un objet d'identification détaillé
     const identifiedData = await response.json();
     console.log("Réponse API détaillée:", identifiedData);
 
     if (!identifiedData || identifiedData.error) {
       statusEl.textContent = "Erreur API : " + (identifiedData?.error || "Impossible de parser la réponse.");
+      if (captureBtn) captureBtn.disabled = false; // 🔓 On débloque en cas d'erreur
       return;
     }
 
-    // Effectuer le matching avec ta base de données locale
     const matchedArtworkId = findBestMatch(identifiedData, museum.artworks);
 
     if (matchedArtworkId) {
@@ -154,6 +158,9 @@ async function identifyImage(imageBase64) {
   } catch (err) {
     statusEl.textContent = "Erreur lors de l'analyse : " + err.message;
   }
+
+  // 🔓 On réactive le bouton à la fin, quoi qu'il arrive
+  if (captureBtn) captureBtn.disabled = false; 
 }
 
 // ---------- Affichage du résultat ----------
