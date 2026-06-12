@@ -20,7 +20,7 @@ export default async function handler(req, res) {
   }
 
   // Utilisation de gemini-1.5-flash (très stable pour la vision)
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
   const prompt = `Tu es un expert en histoire de l'art. Analyse l'image ci-jointe et identifie de manière précise l'œuvre d'art. 
 Tu DOIS répondre UNIQUEMENT avec un objet JSON strict au format suivant, sans aucun autre texte, ni bonjour, ni explication :
