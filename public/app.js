@@ -25,6 +25,7 @@ function init() {
   });
 
   document.getElementById("capture-btn").addEventListener("click", captureAndIdentify);
+  document.getElementById("file-input").addEventListener("change", handleFileImport);
   document.getElementById("close-result").addEventListener("click", () => {
     document.getElementById("result-section").classList.add("hidden");
   });
@@ -60,7 +61,6 @@ async function startCamera() {
 async function captureAndIdentify() {
   const video = document.getElementById("camera");
   const canvas = document.getElementById("canvas");
-  const statusEl = document.getElementById("status");
 
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
@@ -68,10 +68,25 @@ async function captureAndIdentify() {
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
   const imageBase64 = canvas.toDataURL("image/jpeg", 0.8).split(",")[1];
+  await identifyImage(imageBase64);
+}
 
+async function handleFileImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = async () => {
+    const imageBase64 = reader.result.split(",")[1];
+    await identifyImage(imageBase64);
+  };
+  reader.readAsDataURL(file);
+}
+
+async function identifyImage(imageBase64) {
+  const statusEl = document.getElementById("status");
   statusEl.textContent = "Analyse en cours...";
 
-  // Liste des œuvres possibles pour le musée sélectionné
   const museum = MUSEUMS_DATA[currentMuseumId];
   const possibleArtworks = museum.artworks.map((a) => ({
     id: a.id,
@@ -89,6 +104,12 @@ async function captureAndIdentify() {
     });
 
     const data = await response.json();
+    console.log("Réponse API:", data);
+
+    if (data.error) {
+      statusEl.textContent = "Erreur API : " + data.error;
+      return;
+    }
 
     if (data.id && data.id !== "none") {
       showResult(data.id);

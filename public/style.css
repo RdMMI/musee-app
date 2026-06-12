@@ -67,6 +67,21 @@ button:hover {
   background: #a93226;
 }
 
+.file-label {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  border-radius: 8px;
+  background: #555;
+  color: white;
+  cursor: pointer;
+}
+
+.file-label:hover {
+  background: #444;
+}
+
 #status {
   margin-top: 8px;
   font-style: italic;
